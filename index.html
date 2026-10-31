@@ -15,7 +15,7 @@
   <body>
     <div class="announcement">
       <span>Independent style. Everyday energy.</span>
-      <span class="announcement-right">Free shipping on orders over $100 <span aria-hidden="true">↗</span></span>
+      <span class="announcement-right">15% off your first order with WELCOME15 · Free shipping over $100 <span aria-hidden="true">↗</span></span>
     </div>
 
     <header class="site-header">
@@ -30,14 +30,15 @@
         <button class="icon-button search-toggle" type="button" aria-label="Search products">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.5 4.5"></path></svg>
         </button>
+        <a class="wishlist-link" href="#shop" aria-label="Wishlist"><span aria-hidden="true">♡</span><span class="wishlist-label">Saved</span><span class="wishlist-count" aria-live="polite">0</span></a>
         <button class="bag-button" type="button" aria-label="Open shopping bag">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 12H4L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg>
           <span>Bag</span><span class="bag-count" aria-live="polite">0</span>
         </button>
-        <a class="account-link" href="signup.html" aria-label="Create an account">
+        <button class="account-link" type="button" aria-label="Open your account">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
-          <span>Sign up</span>
-        </a>
+          <span>Account</span>
+        </button>
         <button class="menu-toggle icon-button" type="button" aria-label="Open navigation menu" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
         </button>
@@ -89,7 +90,17 @@
               <option value="featured">Featured</option>
               <option value="price-low">Price: low to high</option>
               <option value="price-high">Price: high to low</option>
+              <option value="popular">Most popular</option>
+              <option value="newest">Newest arrivals</option>
               <option value="name">Name: A to Z</option>
+            </select>
+          </label>
+          <label class="sort-control price-filter-control">Price
+            <select id="price-filter" aria-label="Filter by price">
+              <option value="all">Any price</option>
+              <option value="under-50">Under $50</option>
+              <option value="50-100">$50–$100</option>
+              <option value="over-100">Over $100</option>
             </select>
           </label>
         </div>
@@ -119,6 +130,46 @@
         </div>
       </section>
 
+      <section class="reviews-section" id="reviews" aria-labelledby="reviews-title">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> Good words, good people</div>
+            <h2 id="reviews-title">Worn out <span>there.</span></h2>
+          </div>
+          <span class="review-score">★★★★★ <span>4.9 / 5 from our community</span></span>
+        </div>
+        <div class="testimonial-grid">
+          <blockquote><div class="stars" aria-label="5 out of 5 stars">★★★★★</div><p>“Finally, pieces that feel considered without feeling precious. The overshirt is in my weekly rotation.”</p><footer>Alex M. <span>Community note</span></footer></blockquote>
+          <blockquote><div class="stars" aria-label="5 out of 5 stars">★★★★★</div><p>“The fit is spot on, the fabric feels lovely, and the whole experience was refreshingly easy.”</p><footer>Jordan R. <span>Community note</span></footer></blockquote>
+          <blockquote><div class="stars" aria-label="5 out of 5 stars">★★★★★</div><p>“My new go-to tote. Thoughtful quality and a small brand that clearly cares about the details.”</p><footer>Sam T. <span>Community note</span></footer></blockquote>
+        </div>
+      </section>
+
+      <section class="support-section" id="support" aria-labelledby="support-title">
+        <div class="support-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> Here when you need us</div>
+          <h2 id="support-title">A real person.<br /><span>Good answers.</span></h2>
+          <p>Questions about sizing, delivery, or just want to say hi? We’re happy to help.</p>
+          <a class="button button-dark" href="mailto:hello@urbanstyle.example">Email our team <span aria-hidden="true">↗</span></a>
+          <a class="support-phone" href="tel:+18005550142">+1 (800) 555-0142</a>
+          <a class="support-whatsapp" href="https://wa.me/18005550142?text=Hi%20Urbanstyle%20team" target="_blank" rel="noreferrer">WhatsApp us ↗</a>
+        </div>
+        <div class="faq-list">
+          <details><summary>How long does shipping take?</summary><p>Orders usually leave our studio in 1–2 business days. Standard delivery takes 3–5 business days.</p></details>
+          <details><summary>Can I return or exchange something?</summary><p>Of course. Unworn items can be returned within 30 days. Contact us and we’ll help you get started.</p></details>
+          <details><summary>How do I find the right size?</summary><p>Open any product for its fit notes. If you’re between sizes, our team can help you choose.</p></details>
+        </div>
+        <form class="contact-form">
+          <h3>Send us a note</h3>
+          <p class="form-note">Preview only: messages stay in this browser and are not sent.</p>
+          <label class="form-label">Your name<input class="form-control" name="name" maxlength="60" required /></label>
+          <label class="form-label">Email<input class="form-control" name="email" type="email" required /></label>
+          <label class="form-label">Message<textarea class="form-control" name="message" maxlength="1000" required></textarea></label>
+          <button class="button button-dark" type="submit">Save message <span>↗</span></button>
+          <p class="contact-message" aria-live="polite"></p>
+        </form>
+      </section>
+
       <section class="newsletter">
         <div class="newsletter-star">✳</div>
         <div><div class="eyebrow">Good mail, occasionally</div><h2>Stay in the <span>loop.</span></h2><p>New drops, good finds, zero weird stuff.</p></div>
@@ -134,7 +185,7 @@
     <footer class="site-footer">
       <a class="wordmark footer-wordmark" href="index.html">urbanstyle<span>®</span></a>
       <p>Wear your own way. © 2025 Urbanstyle Studio.</p>
-      <div class="footer-links"><a href="#shop">Instagram ↗</a><a href="#shop">Contact ↗</a><a href="#shop">Shipping &amp; returns</a></div>
+      <div class="footer-links"><a href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#support">Contact ↗</a><a href="#support">Shipping &amp; returns</a><button type="button" class="admin-link">Admin preview</button></div>
     </footer>
 
     <div class="drawer-backdrop" hidden></div>
@@ -143,8 +194,12 @@
       <div class="cart-items"></div>
       <div class="cart-empty"><span class="empty-bag">✳</span><h3>Your bag's taking a nap.</h3><p>Give it something good to carry.</p><button class="button button-dark continue-shopping" type="button">Keep browsing <span aria-hidden="true">↗</span></button></div>
       <div class="cart-footer" hidden>
+        <form class="coupon-form"><label for="coupon-code">Promo code</label><div><input id="coupon-code" name="coupon" autocomplete="off" placeholder="Try STYLE10" /><button type="submit">Apply</button></div><span class="coupon-applied" aria-live="polite"></span></form>
         <div class="subtotal-row"><span>Subtotal</span><strong class="cart-subtotal">$0.00</strong></div>
-        <p>Shipping and taxes calculated at checkout.</p>
+        <div class="subtotal-row cart-discount" hidden><span>Discount</span><strong></strong></div>
+        <div class="subtotal-row"><span>Shipping</span><strong class="cart-shipping"></strong></div>
+        <div class="subtotal-row cart-total"><span>Total</span><strong></strong></div>
+        <p>Free shipping over $100. Taxes calculated at checkout.</p>
         <button class="button checkout-button" type="button">Checkout <span aria-hidden="true">↗</span></button>
       </div>
     </aside>
