@@ -22,6 +22,7 @@
       <a class="wordmark" href="index.html" aria-label="Urbanstyle home">urbanstyle<span>®</span></a>
       <nav class="main-nav" aria-label="Main navigation">
         <a href="#shop">Shop all</a>
+        <a href="#categories">Categories</a>
         <a href="#shop" data-nav-category="New">New arrivals</a>
         <a href="#shop" data-nav-category="Clothing">Clothing</a>
         <a href="#shop" data-nav-category="Accessories">Accessories</a>
@@ -70,6 +71,30 @@
         </div>
       </div>
 
+      <section class="category-section" id="categories" aria-labelledby="categories-title">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> Find your kind of thing</div>
+            <h2 id="categories-title">A good place <span>to start.</span></h2>
+          </div>
+          <a class="text-link" href="#shop">Shop all pieces <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="category-grid">
+          <a class="category-card" href="#shop" data-nav-category="Clothing">
+            <img src="https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="" loading="lazy" />
+            <span class="category-card-copy"><span>Everyday layers</span><strong>Clothing <span aria-hidden="true">↗</span></strong></span>
+          </a>
+          <a class="category-card" href="#shop" data-nav-category="Accessories">
+            <img src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="" loading="lazy" />
+            <span class="category-card-copy"><span>The finishing touch</span><strong>Accessories <span aria-hidden="true">↗</span></strong></span>
+          </a>
+          <a class="category-card" href="#shop" data-nav-category="New">
+            <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="" loading="lazy" />
+            <span class="category-card-copy"><span>Just landed</span><strong>New arrivals <span aria-hidden="true">↗</span></strong></span>
+          </a>
+        </div>
+      </section>
+
       <section class="shop-section" id="shop" aria-labelledby="shop-title">
         <div class="section-heading">
           <div>
@@ -92,6 +117,7 @@
               <option value="price-high">Price: high to low</option>
               <option value="popular">Most popular</option>
               <option value="newest">Newest arrivals</option>
+              <option value="rating">Best rated</option>
               <option value="name">Name: A to Z</option>
             </select>
           </label>
@@ -103,11 +129,35 @@
               <option value="over-100">Over $100</option>
             </select>
           </label>
+          <label class="sort-control">Size
+            <select id="size-filter" aria-label="Filter by available size">
+              <option value="all">Any size</option>
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="one-size">One size</option>
+            </select>
+          </label>
+          <label class="sort-control">Rating
+            <select id="rating-filter" aria-label="Filter by minimum rating">
+              <option value="all">Any rating</option>
+              <option value="4">4 stars &amp; up</option>
+              <option value="3">3 stars &amp; up</option>
+            </select>
+          </label>
+          <label class="sort-control availability-control">
+            <input id="stock-filter" type="checkbox" />
+            In stock
+          </label>
+          <button class="clear-filters" type="button">Clear filters</button>
         </div>
         <div class="search-panel" hidden>
           <label for="product-search">Looking for something?</label>
           <div class="search-input-wrap">
-            <input id="product-search" type="search" placeholder="Try “jacket” or “cap”" autocomplete="off" />
+            <input id="product-search" type="search" placeholder="Try “jacket” or “cap”" autocomplete="off" list="product-suggestions" />
+            <datalist id="product-suggestions"></datalist>
             <button class="clear-search" type="button" aria-label="Clear search">×</button>
           </div>
         </div>
@@ -151,8 +201,7 @@
           <h2 id="support-title">A real person.<br /><span>Good answers.</span></h2>
           <p>Questions about sizing, delivery, or just want to say hi? We’re happy to help.</p>
           <a class="button button-dark" href="mailto:hello@urbanstyle.example">Email our team <span aria-hidden="true">↗</span></a>
-          <a class="support-phone" href="tel:+18005550142">+1 (800) 555-0142</a>
-          <a class="support-whatsapp" href="https://wa.me/18005550142?text=Hi%20Urbanstyle%20team" target="_blank" rel="noreferrer">WhatsApp us ↗</a>
+          <a class="support-whatsapp" href="https://wa.me/93796071162?text=Hi%20Urbanstyle%20team" target="_blank" rel="noreferrer">WhatsApp us · 93796071162 ↗</a>
         </div>
         <div class="faq-list">
           <details><summary>How long does shipping take?</summary><p>Orders usually leave our studio in 1–2 business days. Standard delivery takes 3–5 business days.</p></details>
@@ -165,10 +214,10 @@
           <label class="form-label">Your name<input class="form-control" name="name" maxlength="60" required /></label>
           <label class="form-label">Email<input class="form-control" name="email" type="email" required /></label>
           <label class="form-label">Message<textarea class="form-control" name="message" maxlength="1000" required></textarea></label>
-          <button class="button button-dark" type="submit">Save message <span>↗</span></button>
+          <button class="button button-dark" type="submit">Send comment <span>↗</span></button>
           <p class="contact-message" aria-live="polite"></p>
         </form>
-      </section>
+      </section>r
 
       <section class="newsletter">
         <div class="newsletter-star">✳</div>
@@ -185,7 +234,7 @@
     <footer class="site-footer">
       <a class="wordmark footer-wordmark" href="index.html">urbanstyle<span>®</span></a>
       <p>Wear your own way. © 2025 Urbanstyle Studio.</p>
-      <div class="footer-links"><a href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#support">Contact ↗</a><a href="#support">Shipping &amp; returns</a><button type="button" class="admin-link">Admin preview</button></div>
+      <div class="footer-links"><a href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#support">Contact ↗</a><a href="#support">Shipping &amp; returns</a><a href="orders.html">Orders dashboard ↗</a><button type="button" class="admin-link">Admin preview</button></div>
     </footer>
 
     <div class="drawer-backdrop" hidden></div>
@@ -203,6 +252,7 @@
         <button class="button checkout-button" type="button">Checkout <span aria-hidden="true">↗</span></button>
       </div>
     </aside>
+    <button class="back-to-top" type="button" aria-label="Back to top" title="Back to top">↑</button>
     <div class="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

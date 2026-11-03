@@ -1,0 +1,15 @@
+{
+  "name": "urbanstyle-shop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Urbanstyle shop with MySQL order storage",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.14.0"
+  }
+}

@@ -92,6 +92,9 @@ const customProducts = readStorage("urbanstyle-custom-products", []).filter((pro
   typeof product.image === "string" && product.image.startsWith("https://images.unsplash.com/")
 );
 products.push(...customProducts.filter((product) => product && typeof product.id === "string" && !products.some((entry) => entry.id === product.id)));
+document.querySelector("#product-suggestions").innerHTML = products
+  .map((product) => `<option value="${escapeHTML(product.name)}"></option>`)
+  .join("");
 
 function escapeHTML(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -103,9 +106,19 @@ function getStock(product) {
   return Number.isInteger(inventory[product.id]) ? inventory[product.id] : 24;
 }
 
+function getProductRating(product) {
+  const productReviews = reviews[product.id] || [];
+  return productReviews.length
+    ? productReviews.reduce((total, review) => total + review.rating, 0) / productReviews.length
+    : 0;
+}
+
 function renderProducts() {
   const sortBy = document.querySelector("#sort-products").value;
-  const priceFilter = document.querySelector("#price-filter")?.value || "all";
+  const priceFilter = document.querySelector("#price-filter").value;
+  const sizeFilter = document.querySelector("#size-filter").value;
+  const ratingFilter = document.querySelector("#rating-filter").value;
+  const inStockOnly = document.querySelector("#stock-filter").checked;
   let visibleProducts = products.filter((product) => {
     const categoryMatches = activeFilter === "All" || activeFilter === "New"
       ? activeFilter !== "New" || product.badge === "New in" || product.badge === "Just dropped"
@@ -115,18 +128,24 @@ function renderProducts() {
       (priceFilter === "under-50" && product.price < 50) ||
       (priceFilter === "50-100" && product.price >= 50 && product.price <= 100) ||
       (priceFilter === "over-100" && product.price > 100);
-    return categoryMatches && queryMatches && priceMatches;
+    const sizeMatches = sizeFilter === "all" || (getStock(product) > 0 && (
+      (sizeFilter === "one-size" && product.category === "Accessories") ||
+      (product.category === "Clothing" && ["XS", "S", "M", "L", "XL"].includes(sizeFilter))
+    ));
+    const rating = getProductRating(product);
+    const ratingMatches = ratingFilter === "all" || rating >= Number(ratingFilter);
+    const stockMatches = !inStockOnly || getStock(product) > 0;
+    return categoryMatches && queryMatches && priceMatches && sizeMatches && ratingMatches && stockMatches;
   });
   if (sortBy === "price-low") visibleProducts.sort((a, b) => a.price - b.price);
   if (sortBy === "price-high") visibleProducts.sort((a, b) => b.price - a.price);
   if (sortBy === "name") visibleProducts.sort((a, b) => a.name.localeCompare(b.name));
   if (sortBy === "popular") visibleProducts.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
   if (sortBy === "newest") visibleProducts.sort((a, b) => (b.added || 0) - (a.added || 0));
+  if (sortBy === "rating") visibleProducts.sort((a, b) => getProductRating(b) - getProductRating(a));
 
   productGrid.innerHTML = visibleProducts.map((product) => {
-    const rating = reviews[product.id]?.length
-      ? reviews[product.id].reduce((total, review) => total + review.rating, 0) / reviews[product.id].length
-      : 4.8;
+    const rating = getProductRating(product);
     return `
       <article class="product-card" data-product="${escapeHTML(product.id)}">
         <div class="product-image-wrap">
@@ -135,12 +154,12 @@ function renderProducts() {
           </button>
           ${product.badge ? `<span class="product-badge">${escapeHTML(product.badge)}</span>` : ""}
           <button class="wishlist-toggle${wishlist.includes(product.id) ? " is-saved" : ""}" type="button" data-wishlist="${escapeHTML(product.id)}" aria-label="${wishlist.includes(product.id) ? "Remove from" : "Add to"} wishlist" aria-pressed="${wishlist.includes(product.id)}">♡</button>
-          <button class="quick-add" type="button" data-add="${escapeHTML(product.id)}" aria-label="Add ${escapeHTML(product.name)} to bag">+</button>
+          <button class="quick-add" type="button" data-add="${escapeHTML(product.id)}" aria-label="${product.category === "Clothing" ? "Choose size and color options for" : "Add"} ${escapeHTML(product.name)}${product.category === "Clothing" ? "" : " to bag"}">+</button>
         </div>
         <div class="product-info">
           <div class="product-meta"><h3 class="product-name"><button type="button" data-detail="${escapeHTML(product.id)}">${escapeHTML(product.name)}</button></h3><span class="product-price">${money(product.price)}</span></div>
           <p class="product-detail">${escapeHTML(product.detail)}</p>
-          <div class="product-card-rating" aria-label="${rating.toFixed(1)} out of 5 stars">★★★★★ <span>${rating.toFixed(1)}</span></div>
+          <div class="product-card-rating" aria-label="${rating ? `${rating.toFixed(1)} out of 5 stars` : "No customer ratings yet"}">${rating ? `★★★★★ <span>${rating.toFixed(1)} · ${reviews[product.id].length}</span>` : `<span class="no-rating">No reviews yet</span>`}</div>
           <div class="product-swatches" aria-label="Available colors">${product.colors.map((color) => `<span class="swatch" style="background-color:${escapeHTML(color)}" aria-hidden="true"></span>`).join("")}</div>
         </div>
       </article>`;
@@ -148,7 +167,10 @@ function renderProducts() {
   emptyState.hidden = visibleProducts.length > 0;
   productGrid.hidden = visibleProducts.length === 0;
   document.querySelector(".filter-button[data-filter='All'] span").textContent = products.length;
-  document.querySelector(".shop-bottom span:last-child").textContent = `01 — ${String(products.length).padStart(2, "0")}`;
+  document.querySelector(".shop-bottom span:last-child").textContent = `Showing ${visibleProducts.length} of ${products.length}`;
+  document.querySelector(".clear-filters").hidden = activeFilter === "All" && !searchTerm &&
+    priceFilter === "all" && sizeFilter === "all" && ratingFilter === "all" && !inStockOnly &&
+    sortBy === "featured";
 }
 
 function showToast(message) {
@@ -262,7 +284,7 @@ function openProductDetails(id) {
   const productReviews = reviews[id] || [];
   const average = productReviews.length
     ? (productReviews.reduce((sum, review) => sum + review.rating, 0) / productReviews.length).toFixed(1)
-    : "4.8";
+    : null;
   openModal(`${modalHeader("A closer look")}
     <div class="product-detail-layout">
       <img class="detail-image" src="${escapeHTML(product.image)}" alt="${escapeHTML(product.alt)}" />
@@ -270,7 +292,7 @@ function openProductDetails(id) {
         <p class="eyebrow">${escapeHTML(product.category)}${product.badge ? ` · ${escapeHTML(product.badge)}` : ""}</p>
         <h3>${escapeHTML(product.name)}</h3><p class="detail-price">${money(product.price)}</p>
         <p>${escapeHTML(product.detail)}. Made for repeat wears, easy layering, and wherever the day takes you.</p>
-        <p class="product-card-rating">★★★★★ <span>${average} · ${productReviews.length} customer reviews</span></p>
+        <p class="product-card-rating">${average ? `★★★★★ <span>${average} · ${productReviews.length} customer reviews</span>` : `<span class="no-rating">No customer reviews yet</span>`}</p>
         <label class="form-label" for="detail-size">Size</label>
         <select id="detail-size" class="form-control"><option value="">${product.category === "Clothing" ? "Choose a size" : "One size"}</option>${sizeOptions}</select>
         <label class="form-label" for="detail-color">Choose a color</label>
@@ -299,14 +321,40 @@ function openCheckout() {
   openModal(`${modalHeader("Checkout")}
     <div class="checkout-layout">
       <form class="checkout-form">
-        <p class="form-note">Demo checkout: this preview does not transmit orders or process payments. Do not enter real payment details.</p>
+        <p class="form-note">Fill in every delivery field to place your order. The shop must be open from its local server at http://127.0.0.1:3000; opening this HTML file directly cannot save orders. Card and PayPal options are demo only and do not collect payment.</p>
         <h3>Delivery details</h3>
         <label class="form-label">Full name<input class="form-control" name="name" autocomplete="name" required value="${escapeHTML(profile?.name || "")}" /></label>
         <label class="form-label">Email<input class="form-control" name="email" type="email" autocomplete="email" required value="${escapeHTML(profile?.email || "")}" /></label>
         <label class="form-label">Phone<input class="form-control" name="phone" type="tel" autocomplete="tel" required /></label>
         <label class="form-label">Delivery address<input class="form-control" name="address" autocomplete="street-address" required /></label>
-        <label class="form-label">Payment method<select class="form-control" name="payment" required><option value="Cash on delivery">Cash on delivery</option><option value="Card (not connected)">Card (not connected in preview)</option></select></label>
-        <button class="button button-dark" type="submit">Place demo order · ${money(totals.total)} <span>↗</span></button>
+        <label class="form-label">City<input class="form-control" name="city" autocomplete="address-level2" required maxlength="100" /></label>
+        <label class="form-label">Country code (2 letters, e.g. US)<input class="form-control" name="country" autocomplete="off" required minlength="2" maxlength="2" pattern="[A-Za-z]{2}" title="Enter a two-letter country code, such as US." placeholder="US" /></label>
+        <label class="form-label">Postal code<input class="form-control" name="postalCode" autocomplete="postal-code" required maxlength="24" /></label>
+        <fieldset class="payment-methods">
+          <legend>Payment method</legend>
+          <label class="payment-method-option">
+            <input type="radio" name="payment" value="Cash on delivery" data-payment-note="No payment is due now. Submit your order to save your information; payment remains pending." required checked />
+            <span><strong>Cash on delivery</strong><small>Pay your courier when your order arrives.</small></span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment" value="Credit/debit card (demo)" data-payment-note="No card payment is taken. Submit your order without paying; its payment status will remain pending." />
+            <span><strong>Card (pay later)</strong><small>No card details are requested and no payment is taken.</small></span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment" value="PayPal (demo)" data-payment-note="PayPal is not connected. Submit your order without paying; its payment status will remain pending." />
+            <span><strong>PayPal (pay later)</strong><small>No payment is collected at checkout.</small></span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment" value="Bank transfer (manual demo)" data-payment-note="Bank transfer is not configured. Submit your order without paying; its payment status will remain pending." />
+            <span><strong>Bank transfer (pay later)</strong><small>No transfer is required to submit your order.</small></span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment" value="Mobile money (manual demo)" data-payment-note="Mobile money is not connected. Submit your order without paying; its payment status will remain pending." />
+            <span><strong>Mobile money (pay later)</strong><small>No payment is collected at checkout.</small></span>
+          </label>
+          <p class="form-note payment-method-note" aria-live="polite">No payment is due now. Submit your order to save your information; payment remains pending.</p>
+        </fieldset>
+        <button class="button button-dark" type="submit">Submit order · ${money(totals.total)} <span>↗</span></button>
       </form>
       <aside class="order-summary"><h3>Order summary</h3>${cart.map((item) => {
         const product = products.find((entry) => entry.id === item.id);
@@ -323,12 +371,17 @@ function openCheckout() {
 function openAccount() {
   openModal(`${modalHeader("Your account")}
     <div class="account-panel">
-      <p class="form-note">This local preview keeps a profile and order history in this browser only. It is not a secure account system.</p>
+      <p class="form-note">${profile
+        ? "This local preview keeps a profile and order history in this browser only. It is not a secure account system."
+        : "Create a profile for this preview. Passwords are checked here but never stored, and this does not create a secure account."}</p>
       ${profile ? `<p>Signed in locally as <strong>${escapeHTML(profile.name || profile.email)}</strong> · ${escapeHTML(profile.email)}</p>` : ""}
       <form class="account-form">
+        ${profile ? "" : `<h3>Create your profile</h3>`}
         <label class="form-label">Your name<input class="form-control" name="name" autocomplete="name" required value="${escapeHTML(profile?.name || "")}" /></label>
         <label class="form-label">Email<input class="form-control" name="email" type="email" autocomplete="email" required value="${escapeHTML(profile?.email || "")}" /></label>
-        <button class="button button-dark" type="submit">${profile ? "Update local profile" : "Create local profile"} <span>↗</span></button>
+        ${profile ? "" : `<label class="form-label">Password<input class="form-control" name="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <label class="form-label">Confirm password<input class="form-control" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required /></label>`}
+        <button class="button button-dark" type="submit">${profile ? "Update local profile" : "Sign up"} <span>↗</span></button>
       </form>
       <h3>Your order history</h3>
       <div class="account-orders">${orders.filter((order) => !profile || order.email === profile.email).length
@@ -372,7 +425,9 @@ productGrid.addEventListener("click", (event) => {
   const wishlistButton = target.closest("[data-wishlist]");
   const detailButton = target.closest("[data-detail]");
   if (addButton) {
-    addToCart(addButton.dataset.add);
+    const product = products.find((entry) => entry.id === addButton.dataset.add);
+    if (product?.category === "Clothing") openProductDetails(product.id);
+    else addToCart(addButton.dataset.add);
   } else if (wishlistButton) {
     const id = wishlistButton.dataset.wishlist;
     wishlist = wishlist.includes(id) ? wishlist.filter((item) => item !== id) : [...wishlist, id];
@@ -436,6 +491,21 @@ document.querySelectorAll("[data-nav-category]").forEach((link) => {
 });
 document.querySelector("#sort-products").addEventListener("change", renderProducts);
 document.querySelector("#price-filter").addEventListener("change", renderProducts);
+document.querySelector("#size-filter").addEventListener("change", renderProducts);
+document.querySelector("#rating-filter").addEventListener("change", renderProducts);
+document.querySelector("#stock-filter").addEventListener("change", renderProducts);
+document.querySelector(".clear-filters").addEventListener("click", () => {
+  activeFilter = "All";
+  searchTerm = "";
+  searchInput.value = "";
+  document.querySelector("#sort-products").value = "featured";
+  document.querySelector("#price-filter").value = "all";
+  document.querySelector("#size-filter").value = "all";
+  document.querySelector("#rating-filter").value = "all";
+  document.querySelector("#stock-filter").checked = false;
+  filterButtons.forEach((button) => button.classList.toggle("active", button.dataset.filter === "All"));
+  renderProducts();
+});
 searchInput.addEventListener("input", () => {
   searchTerm = searchInput.value.trim().toLowerCase();
   renderProducts();
@@ -456,6 +526,13 @@ document.querySelector(".continue-shopping").addEventListener("click", () => set
 backdrop.addEventListener("click", () => setCartOpen(false));
 document.querySelector(".checkout-button").addEventListener("click", openCheckout);
 document.querySelector(".account-link").addEventListener("click", openAccount);
+const backToTopButton = document.querySelector(".back-to-top");
+window.addEventListener("scroll", () => {
+  backToTopButton.classList.toggle("visible", window.scrollY > 500);
+}, { passive: true });
+backToTopButton.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 document.querySelector(".wishlist-link").addEventListener("click", (event) => {
   event.preventDefault();
   openWishlist();
@@ -477,6 +554,23 @@ document.querySelectorAll(".main-nav a").forEach((link) => {
     menuToggle.setAttribute("aria-expanded", "false");
     menuToggle.setAttribute("aria-label", "Open navigation menu");
   });
+});
+
+modalRoot.addEventListener("invalid", (event) => {
+  const form = event.target.form;
+  if (!form?.matches(".checkout-form")) return;
+  const formNote = form.querySelector(".form-note");
+  const fieldLabel = event.target.closest("label")?.querySelector(".form-label")?.textContent ||
+    event.target.closest("label")?.textContent.trim() ||
+    "a required field";
+  formNote.textContent = `Please check ${fieldLabel}. Complete all required delivery details before placing your order.`;
+}, true);
+
+modalRoot.addEventListener("change", (event) => {
+  const paymentOption = event.target.closest('input[name="payment"]');
+  if (paymentOption) {
+    modalRoot.querySelector(".payment-method-note").textContent = paymentOption.dataset.paymentNote;
+  }
 });
 
 modalRoot.addEventListener("click", (event) => {
@@ -536,7 +630,7 @@ modalRoot.addEventListener("click", (event) => {
   }
 });
 
-modalRoot.addEventListener("submit", (event) => {
+modalRoot.addEventListener("submit", async (event) => {
   const form = event.target;
   event.preventDefault();
   if (form.matches(".review-form")) {
@@ -558,14 +652,53 @@ modalRoot.addEventListener("submit", (event) => {
       form.querySelector(".form-note").textContent = "One or more items exceed current stock. Close checkout and adjust your bag.";
       return;
     }
+    const submitButton = form.querySelector('button[type="submit"]');
+    const formNote = form.querySelector(".form-note");
+    submitButton.disabled = true;
+    formNote.textContent = "Saving your order securely to the shop database…";
+    let savedOrder;
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: data.get("name").toString().trim(),
+            email: data.get("email").toString().trim(),
+            phone: data.get("phone").toString().trim(),
+            address: data.get("address").toString().trim(),
+            city: data.get("city").toString().trim(),
+            country: data.get("country").toString().trim(),
+            postalCode: data.get("postalCode").toString().trim(),
+          },
+          payment: data.get("payment").toString(),
+          coupon,
+          items: cart.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color,
+          })),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save the order.");
+      savedOrder = result;
+    } catch (error) {
+      submitButton.disabled = false;
+      formNote.textContent = error instanceof TypeError
+        ? "Cannot reach the shop server. Start it with npm start, then open http://127.0.0.1:3000 (do not open index.html directly)."
+        : error.message || "Could not save the order. Check that the shop server and MySQL are running.";
+      return;
+    }
     const order = {
-      id: `US-${Date.now().toString().slice(-7)}`,
+      id: savedOrder.orderNumber,
       name: data.get("name").toString().trim(),
       email: data.get("email").toString().trim().toLowerCase(),
       payment: data.get("payment").toString(),
       date: new Date().toLocaleDateString(),
-      status: "Demo order received",
-      total: getCartTotals().total,
+      status: "Order received",
+      total: savedOrder.total,
       items: cart.map((item) => ({ ...item })),
     };
     orders.push(order);
@@ -576,13 +709,22 @@ modalRoot.addEventListener("submit", (event) => {
     coupon = null;
     localStorage.removeItem(STORAGE.coupon);
     saveCart();
-    openModal(`${modalHeader("Order received")}<div class="confirmation-panel"><span class="confirmation-mark">✓</span><h3>Thanks, ${escapeHTML(order.name)}.</h3><p>Your demo order <strong>${escapeHTML(order.id)}</strong> is saved in this browser. No payment was taken and nothing was sent to a store.</p><button class="button button-dark modal-close" type="button">Continue shopping <span>↗</span></button></div>`);
+    openModal(`${modalHeader("Order received")}<div class="confirmation-panel"><span class="confirmation-mark">✓</span><h3>Thanks, ${escapeHTML(order.name)}.</h3><p>Your order <strong>${escapeHTML(order.id)}</strong> has been saved to the shop database with <strong>${escapeHTML(order.payment)}</strong>. Payment is pending; no payment was collected and no delivery is arranged by this local preview.</p><p><a class="text-link" href="/orders.html">View orders on the separate orders page ↗</a></p><button class="button button-dark modal-close" type="button">Continue shopping <span>↗</span></button></div>`);
   } else if (form.matches(".account-form")) {
     const data = new FormData(form);
+    if (!profile && data.get("password") !== data.get("confirmPassword")) {
+      const confirmPassword = form.elements.namedItem("confirmPassword");
+      confirmPassword.setCustomValidity("Passwords do not match.");
+      confirmPassword.reportValidity();
+      for (const input of [form.elements.namedItem("password"), confirmPassword]) {
+        input.addEventListener("input", () => confirmPassword.setCustomValidity(""), { once: true });
+      }
+      return;
+    }
     profile = { name: data.get("name").toString().trim(), email: data.get("email").toString().trim().toLowerCase() };
     localStorage.setItem(STORAGE.profile, JSON.stringify(profile));
     openAccount();
-    showToast("Local profile saved");
+    showToast("Local profile saved. Passwords are not stored.");
   } else if (form.matches(".admin-product-form")) {
     const data = new FormData(form);
     const name = data.get("name").toString().trim();
